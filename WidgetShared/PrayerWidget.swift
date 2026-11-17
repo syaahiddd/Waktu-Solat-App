@@ -174,22 +174,23 @@ private struct CircularView: View {
 
     var body: some View {
         if let next = entry.next {
-            ZStack {
-                AccessoryWidgetBackground()
+            // Ring empties from the previous prayer to the next one; the system animates it live.
+            ProgressView(timerInterval: min(entry.countdownStart, next.time)...next.time, countsDown: true) {
+                EmptyView()
+            } currentValueLabel: {
                 VStack(spacing: 0) {
-                    Image(systemName: next.prayer.symbol)
-                        .font(.caption)
-                        .widgetAccentable()
                     Text(next.prayer.shortName)
                         .font(.system(size: 10, weight: .semibold))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.6)
-                    Text(next.time, format: shortTime)
-                        .font(.system(size: 13, weight: .bold))
-                        .minimumScaleFactor(0.6)
+                        .widgetAccentable()
+                    Text(next.time, style: .timer)
+                        .font(.system(size: 11, weight: .bold))
+                        .monospacedDigit()
+                        .multilineTextAlignment(.center)
                 }
-                .padding(2)
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
             }
+            .progressViewStyle(.circular)
         }
     }
 }
@@ -199,25 +200,28 @@ private struct RectangularView: View {
 
     var body: some View {
         if let next = entry.next {
-            VStack(alignment: .leading, spacing: 1) {
-                HStack {
-                    Label(next.prayer.name, systemImage: next.prayer.symbol)
-                        .font(.headline)
-                        .widgetAccentable()
-                    Spacer(minLength: 4)
+            VStack(alignment: .leading, spacing: 0) {
+                // Next prayer and its time
+                HStack(spacing: 4) {
+                    Image(systemName: next.prayer.symbol)
+                    Text(next.prayer.name)
+                    Spacer(minLength: 2)
                     Text(next.time, format: fullTime)
-                        .font(.headline)
                 }
-                HStack(spacing: 3) {
-                    Text("in")
-                    Countdown(entry: entry, next: next)
-                }
-                .font(.caption)
-                Text("\(entry.zoneCode ?? "") · \(entry.day?.hijriDisplay ?? "")")
+                .font(.headline)
+                .widgetAccentable()
+
+                // Countdown right below it
+                Text(next.time, style: .timer)
+                    .font(.system(.title2, design: .rounded).weight(.semibold))
+                    .monospacedDigit()
+
+                Text(entry.zoneCode ?? "")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
-                    .lineLimit(1)
             }
+            .lineLimit(1)
+            .minimumScaleFactor(0.7)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
@@ -229,7 +233,7 @@ private struct InlineView: View {
     var body: some View {
         if let next = entry.next {
             Label {
-                Text("\(next.prayer.name) \(next.time, format: fullTime)")
+                Text("\(next.prayer.name) · \(next.time, style: .timer)")
             } icon: {
                 Image(systemName: next.prayer.symbol)
             }
@@ -247,7 +251,7 @@ private struct CornerView: View {
                 .font(.title3)
                 .widgetAccentable()
                 .widgetLabel {
-                    Text("\(next.prayer.name) \(next.time, format: shortTime)")
+                    Text("\(next.prayer.name) \(next.time, style: .timer)")
                 }
         }
     }

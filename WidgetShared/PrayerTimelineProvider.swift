@@ -7,13 +7,16 @@ struct PrayerEntry: TimelineEntry {
     let day: DayPrayerTimes?
     let next: PrayerMoment?
     let current: PrayerMoment?
+    /// When the countdown to `next` started (previous prayer time).
+    let countdownStart: Date
 
     static func make(at date: Date, schedule: PrayerSchedule?) -> PrayerEntry {
         PrayerEntry(date: date,
                     zoneCode: schedule?.zoneCode,
                     day: schedule?.day(for: date),
                     next: schedule?.next(after: date),
-                    current: schedule?.current(at: date))
+                    current: schedule?.current(at: date),
+                    countdownStart: schedule?.previous(atOrBefore: date)?.time ?? date)
     }
 
     /// Fake data for the widget gallery / placeholders.
@@ -28,7 +31,8 @@ struct PrayerEntry: TimelineEntry {
         let now = Date()
         return PrayerEntry(date: now, zoneCode: "PRK05", day: day,
                            next: schedule.next(after: now) ?? PrayerMoment(prayer: .subuh, time: now.addingTimeInterval(3600)),
-                           current: schedule.current(at: now))
+                           current: schedule.current(at: now),
+                           countdownStart: schedule.previous(atOrBefore: now)?.time ?? now.addingTimeInterval(-3600))
     }
 }
 

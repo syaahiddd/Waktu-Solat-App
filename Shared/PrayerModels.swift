@@ -103,6 +103,11 @@ struct PrayerSchedule: Codable, Equatable {
         fardMoments.first { $0.time > date }
     }
 
+    /// Most recent obligatory prayer at or before `date` (start of the countdown ring).
+    func previous(atOrBefore date: Date) -> PrayerMoment? {
+        fardMoments.last { $0.time <= date }
+    }
+
     /// The obligatory prayer whose time is currently running (nil between Syuruk and Zohor).
     func current(at date: Date) -> PrayerMoment? {
         guard let last = fardMoments.last(where: { $0.time <= date }) else { return nil }
