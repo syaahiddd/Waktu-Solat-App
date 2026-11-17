@@ -85,7 +85,13 @@ You can always override this from the map button → choose a zone. Tapping the 
 - **Deprecation warnings for `CLGeocoder`** with the iOS 26 SDK: these are warnings only. Apple's replacement is MapKit's `MKReverseGeocodingRequest`, if you want to migrate later.
 - **Watch shows "Open Waktu Solat on your iPhone"**: open the iPhone app once so it detects your zone and sends it to the watch.
 
+### Notifications
+Tap the bell (top left) to turn on **prayer time alerts** and an optional **reminder** 5–30 minutes before each prayer. `iOS/PrayerNotifications.swift` schedules local notifications from the cached times (up to iOS's limit of 64 pending), so they fire even when the app is closed, and iOS mirrors them to a paired Apple Watch. They're rescheduled every time the app refreshes.
+
+### App icon
+`iOS/Assets.xcassets` and `Watch/Assets.xcassets` contain a single 1024×1024 crescent-moon icon; Xcode generates all other sizes.
+
 ## Ideas for next steps
-- Azan or reminder notifications (`UNUserNotificationCenter`, scheduled from the cached times)
+- Custom azan sound for notifications (a `.caf` file under 30 seconds, set as `content.sound`)
 - Qibla direction (JAKIM's response includes a `bearing` field)
 - Monthly timetable screen

@@ -4,6 +4,7 @@ struct ContentView: View {
     @EnvironmentObject private var model: PrayerViewModel
     @Environment(\.scenePhase) private var scenePhase
     @State private var showingZonePicker = false
+    @State private var showingSettings = false
 
     var body: some View {
         NavigationStack {
@@ -42,7 +43,16 @@ struct ContentView: View {
             .refreshable { await model.refresh(force: true) }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    if model.isLoading { ProgressView() }
+                    if model.isLoading {
+                        ProgressView()
+                    } else {
+                        Button {
+                            showingSettings = true
+                        } label: {
+                            Image(systemName: model.notificationsEnabled ? "bell.fill" : "bell")
+                        }
+                        .accessibilityLabel("Notifications and settings")
+                    }
                 }
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     Button {
@@ -62,6 +72,10 @@ struct ContentView: View {
             }
             .sheet(isPresented: $showingZonePicker) {
                 ZonePickerView()
+                    .environmentObject(model)
+            }
+            .sheet(isPresented: $showingSettings) {
+                SettingsView()
                     .environmentObject(model)
             }
         }

@@ -9,6 +9,9 @@ final class PrayerViewModel: ObservableObject {
     @Published private(set) var autoLocate: Bool
     @Published private(set) var isLoading = false
     @Published var errorMessage: String?
+    @Published private(set) var notificationsEnabled: Bool
+    @Published private(set) var reminderMinutes: Int
+    @Published private(set) var notificationsDenied = false
 
     private let store = PrayerStore.shared
     private let locationProvider = LocationProvider()
@@ -18,6 +21,8 @@ final class PrayerViewModel: ObservableObject {
         _schedule = Published(initialValue: store.schedule)
         _autoLocate = Published(initialValue: store.autoLocate)
         _zone = Published(initialValue: store.zoneCode.flatMap(Zones.zone(for:)))
+        _notificationsEnabled = Published(initialValue: store.notificationsEnabled)
+        _reminderMinutes = Published(initialValue: store.reminderMinutes)
     }
 
     /// Detects the zone (if GPS mode is on) and downloads times from JAKIM when needed.
@@ -76,9 +81,38 @@ final class PrayerViewModel: ObservableObject {
         Task { await refresh() }
     }
 
+    // MARK: Notifications
+
+    func setNotifications(_ on: Bool) {
+        Task {
+            if on {
+                let granted = await PrayerNotifications.requestPermission()
+                notificationsDenied = !granted
+                notificationsEnabled = granted
+            } else {
+                notificationsEnabled = false
+            }
+            store.notificationsEnabled = notificationsEnabled
+            await rescheduleNotifications()
+        }
+    }
+
+    func setReminder(_ minutes: Int) {
+        reminderMinutes = minutes
+        store.reminderMinutes = minutes
+        Task { await rescheduleNotifications() }
+    }
+
+    func rescheduleNotifications() async {
+        await PrayerNotifications.reschedule(schedule: schedule,
+                                             enabled: notificationsEnabled,
+                                             reminderMinutes: reminderMinutes)
+    }
+
     private func publish(_ s: PrayerSchedule) {
         schedule = s
         PhoneConnectivity.shared.send(schedule: s)
         WidgetCenter.shared.reloadAllTimelines()
+        Task { await rescheduleNotifications() }
     }
 }

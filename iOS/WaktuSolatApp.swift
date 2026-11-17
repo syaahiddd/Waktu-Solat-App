@@ -1,4 +1,5 @@
 import SwiftUI
+import UserNotifications
 
 @main
 struct WaktuSolatApp: App {
@@ -6,6 +7,7 @@ struct WaktuSolatApp: App {
 
     init() {
         PhoneConnectivity.shared.activate()
+        UNUserNotificationCenter.current().delegate = NotificationPresenter.shared
     }
 
     var body: some Scene {

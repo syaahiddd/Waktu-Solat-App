@@ -9,6 +9,8 @@ final class PrayerStore {
         static let schedule = "schedule"
         static let zoneCode = "zoneCode"
         static let autoLocate = "autoLocate"
+        static let notificationsEnabled = "notificationsEnabled"
+        static let reminderMinutes = "reminderMinutes"
     }
 
     init(defaults: UserDefaults? = UserDefaults(suiteName: AppConfig.appGroupID)) {
@@ -38,6 +40,17 @@ final class PrayerStore {
     var autoLocate: Bool {
         get { defaults.object(forKey: Key.autoLocate) as? Bool ?? true }
         set { defaults.set(newValue, forKey: Key.autoLocate) }
+    }
+
+    var notificationsEnabled: Bool {
+        get { defaults.bool(forKey: Key.notificationsEnabled) }
+        set { defaults.set(newValue, forKey: Key.notificationsEnabled) }
+    }
+
+    /// Minutes before each prayer for an early reminder (0 = off).
+    var reminderMinutes: Int {
+        get { defaults.integer(forKey: Key.reminderMinutes) }
+        set { defaults.set(newValue, forKey: Key.reminderMinutes) }
     }
 
     /// Returns the cached schedule if it covers today and tomorrow; otherwise downloads from JAKIM.
