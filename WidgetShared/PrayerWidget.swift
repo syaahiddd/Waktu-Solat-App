@@ -215,10 +215,6 @@ private struct RectangularView: View {
                 Text(next.time, style: .timer)
                     .font(.system(.title2, design: .rounded).weight(.semibold))
                     .monospacedDigit()
-
-                Text(entry.zoneCode ?? "")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
             }
             .lineLimit(1)
             .minimumScaleFactor(0.7)
