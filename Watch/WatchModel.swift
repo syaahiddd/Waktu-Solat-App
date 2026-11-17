@@ -38,6 +38,13 @@ final class WatchModel: NSObject, ObservableObject, WCSessionDelegate {
         }
     }
 
+    /// Lets the watch work on its own: pick a zone here and download from JAKIM directly.
+    @MainActor
+    func selectZone(_ zone: JakimZone) {
+        store.zoneCode = zone.code
+        Task { await refresh() }
+    }
+
     private func apply(_ data: Data) {
         guard let received = try? JSONDecoder().decode(PrayerSchedule.self, from: data) else { return }
         store.schedule = received

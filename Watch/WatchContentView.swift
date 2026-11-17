@@ -1,10 +1,17 @@
 import SwiftUI
 
+/// Screens the watch app can navigate to.
+enum WatchRoute: Hashable {
+    case states
+    case zones(state: String)
+}
+
 struct WatchContentView: View {
     @EnvironmentObject private var model: WatchModel
+    @State private var path: [WatchRoute] = []
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             Group {
                 if let schedule = model.schedule {
                     TimelineView(.everyMinute) { context in
@@ -13,18 +20,68 @@ struct WatchContentView: View {
                 } else if model.isRefreshing {
                     ProgressView()
                 } else {
-                    VStack(spacing: 8) {
-                        Image(systemName: "iphone")
-                            .font(.title2)
-                        Text("Open Waktu Solat on your iPhone to set your zone.")
-                            .multilineTextAlignment(.center)
-                            .font(.footnote)
+                    ScrollView {
+                        VStack(spacing: 10) {
+                            Image(systemName: "moon.stars")
+                                .font(.title2)
+                                .foregroundStyle(.tint)
+                            Text("Choose your JAKIM zone, or open Waktu Solat on your iPhone.")
+                                .multilineTextAlignment(.center)
+                                .font(.footnote)
+                            NavigationLink(value: WatchRoute.states) {
+                                Label("Choose zone", systemImage: "mappin.and.ellipse")
+                            }
+                        }
                     }
                 }
             }
             .navigationTitle("Waktu Solat")
+            .navigationDestination(for: WatchRoute.self) { route in
+                switch route {
+                case .states:
+                    StateList()
+                case .zones(let state):
+                    ZoneList(state: state) { zone in
+                        model.selectZone(zone)
+                        path.removeAll()
+                    }
+                }
+            }
         }
         .task { await model.refresh() }
+    }
+}
+
+// MARK: - Zone picker
+
+private struct StateList: View {
+    var body: some View {
+        List(Zones.states, id: \.self) { state in
+            NavigationLink(state, value: WatchRoute.zones(state: state))
+        }
+        .navigationTitle("State")
+    }
+}
+
+private struct ZoneList: View {
+    let state: String
+    let onPick: (JakimZone) -> Void
+
+    var body: some View {
+        List(Zones.all.filter { $0.state == state }) { zone in
+            Button {
+                onPick(zone)
+            } label: {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(zone.code).font(.headline)
+                    Text(zone.areas)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(3)
+                }
+            }
+        }
+        .navigationTitle(state)
     }
 }
 
@@ -77,9 +134,12 @@ private struct ScheduleList: View {
             }
 
             Section {
-                Text("Zone \(schedule.zoneCode) · JAKIM")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
+                NavigationLink(value: WatchRoute.states) {
+                    Label("Zone \(schedule.zoneCode)", systemImage: "mappin.and.ellipse")
+                        .font(.footnote)
+                }
+            } footer: {
+                Text("Prayer times from JAKIM e-Solat")
             }
         }
     }
